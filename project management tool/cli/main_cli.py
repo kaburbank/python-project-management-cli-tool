@@ -102,7 +102,7 @@ def save_all(users, projects, tasks):
 
     if args.command == "add-user":
         if not validate_email(args.email):
-            console.print("[red]Invalid email.[/red]")
+            console.print(f"[red]Invalid email: '{args.email}'. Please provide a valid email address (e.g., user@example.com).[/red]")
             sys.exit(1)
         user_id = get_next_id(users)
         users[user_id] = {"user_id": user_id, "name": args.name, "email": args.email, "projects": []}
@@ -121,7 +121,7 @@ def save_all(users, projects, tasks):
     elif args.command == "add-project":
         user = find_user_by_name(args.user)
         if not user:
-            console.print("[red]User not found.[/red]")
+            console.print(f"[red]User '{args.user}' not found. Please check the user name or add the user first using 'add-user'.[/red]")
             sys.exit(1)
         project_id = get_next_id(projects)
         projects[project_id] = {"project_id": project_id, "name": args.title, "description": args.description, "owner_id": user["user_id"], "tasks": [], "contributors": [user["user_id"]]}
@@ -132,7 +132,7 @@ def save_all(users, projects, tasks):
     elif args.command == "list-projects":
         user = find_user_by_name(args.user)
         if not user:
-            console.print("[red]User not found.[/red]")
+            console.print(f"[red]User '{args.user}' not found. Please check the user name or add the user first using 'add-user'.[/red]")
             sys.exit(1)
         table = Table(title=f"Projects for {args.user}")
         table.add_column("ID")
@@ -147,11 +147,11 @@ def save_all(users, projects, tasks):
     elif args.command == "add-task":
         project = find_project_by_title(args.project)
         if not project:
-            console.print("[red]Project not found.[/red]")
+            console.print(f"[red]Project '{args.project}' not found. Please check the project title or add the project first using 'add-project'.[/red]")
             sys.exit(1)
         user = find_user_by_name(args.user)
         if not user:
-            console.print("[red]User not found.[/red]")
+            console.print(f"[red]User '{args.user}' not found. Please check the user name or add the user first using 'add-user'.[/red]")
             sys.exit(1)
         due_date = parse_due_date(args.due) if args.due else None
         task_id = get_next_id(tasks)
@@ -165,7 +165,7 @@ def save_all(users, projects, tasks):
     elif args.command == "list-tasks":
         project = find_project_by_title(args.project)
         if not project:
-            console.print("[red]Project not found.[/red]")
+            console.print(f"[red]Project '{args.project}' not found. Please check the project title or add the project first using 'add-project'.[/red]")
             sys.exit(1)
         table = Table(title=f"Tasks for Project {args.project}")
         table.add_column("ID")
@@ -183,11 +183,11 @@ def save_all(users, projects, tasks):
     elif args.command == "complete-task":
         project = find_project_by_title(args.project)
         if not project:
-            console.print("[red]Project not found.[/red]")
+            console.print(f"[red]Project '{args.project}' not found. Please check the project title or add the project first using 'add-project'.[/red]")
             sys.exit(1)
         task = find_task_by_title_and_project(args.task, project)
         if not task:
-            console.print("[red]Task not found in project.[/red]")
+            console.print(f"[red]Task '{args.task}' not found in project '{args.project}'. Please check the task title or add the task first using 'add-task'.[/red]")
             sys.exit(1)
         task["status"] = "complete"
         save_all(users, projects, tasks)
