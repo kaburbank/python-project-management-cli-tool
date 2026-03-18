@@ -104,6 +104,10 @@ def save_all(users, projects, tasks):
         if not validate_email(args.email):
             console.print(f"[red]Invalid email: '{args.email}'. Please provide a valid email address (e.g., user@example.com).[/red]")
             sys.exit(1)
+        # Check for duplicate user name
+        if any(u["name"] == args.name for u in users.values()):
+            console.print(f"[red]A user with the name '{args.name}' already exists. Please choose a different name.[/red]")
+            sys.exit(1)
         user_id = get_next_id(users)
         users[user_id] = {"user_id": user_id, "name": args.name, "email": args.email, "projects": []}
         save_all(users, projects, tasks)
@@ -122,6 +126,10 @@ def save_all(users, projects, tasks):
         user = find_user_by_name(args.user)
         if not user:
             console.print(f"[red]User '{args.user}' not found. Please check the user name or add the user first using 'add-user'.[/red]")
+            sys.exit(1)
+        # Check for duplicate project title
+        if any(p["name"] == args.title for p in projects.values()):
+            console.print(f"[red]A project with the title '{args.title}' already exists. Please choose a different title.[/red]")
             sys.exit(1)
         project_id = get_next_id(projects)
         projects[project_id] = {"project_id": project_id, "name": args.title, "description": args.description, "owner_id": user["user_id"], "tasks": [], "contributors": [user["user_id"]]}
@@ -152,6 +160,10 @@ def save_all(users, projects, tasks):
         user = find_user_by_name(args.user)
         if not user:
             console.print(f"[red]User '{args.user}' not found. Please check the user name or add the user first using 'add-user'.[/red]")
+            sys.exit(1)
+        # Check for duplicate task title in the same project
+        if any(tasks[tid]["title"] == args.title for tid in project["tasks"] if tid in tasks):
+            console.print(f"[red]A task with the title '{args.title}' already exists in project '{args.project}'. Please choose a different title.[/red]")
             sys.exit(1)
         due_date = parse_due_date(args.due) if args.due else None
         task_id = get_next_id(tasks)
