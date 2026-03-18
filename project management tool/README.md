@@ -56,7 +56,6 @@ python main.py <command> [options]
 ## Known Issues
 
 - No authentication or user roles (all users are admins)
-- No input validation for duplicate names/titles
 - No support for deleting users, projects, or tasks
 - No advanced search or filtering
 - Minimal error handling for malformed data

@@ -1,0 +1,10 @@
+{
+  "1": {
+    "user_id": "1",
+    "name": "Alice",
+    "email": "alice@example.com",
+    "projects": [
+      "1"
+    ]
+  }
+}
