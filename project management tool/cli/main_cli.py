@@ -4,6 +4,7 @@ from rich.table import Table
 from models.entities import User, Project, Task
 from storage.storage import Storage
 from utils.helpers import validate_email, parse_due_date
+import logging
 
 
 
@@ -13,6 +14,14 @@ import argparse
 from typing import Dict, List
 from datetime import datetime
 from rich.prompt import Prompt
+
+# Setup basic logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(name)s %(message)s',
+    handlers=[logging.StreamHandler()]
+)
+logger = logging.getLogger("cli")
 
 # Data file paths
 USER_FILE = os.path.join(os.path.dirname(__file__), '../storage/users.json')
@@ -101,16 +110,20 @@ def save_all(users, projects, tasks):
         return None
 
     if args.command == "add-user":
+        logger.info(f"Attempting to add user: {args.name} <{args.email}>")
         if not validate_email(args.email):
+            logger.error(f"Invalid email: {args.email}")
             console.print(f"[red]Invalid email: '{args.email}'. Please provide a valid email address (e.g., user@example.com).[/red]")
             sys.exit(1)
         # Check for duplicate user name
         if any(u["name"] == args.name for u in users.values()):
+            logger.error(f"Duplicate user name: {args.name}")
             console.print(f"[red]A user with the name '{args.name}' already exists. Please choose a different name.[/red]")
             sys.exit(1)
         user_id = get_next_id(users)
         users[user_id] = {"user_id": user_id, "name": args.name, "email": args.email, "projects": []}
         save_all(users, projects, tasks)
+        logger.info(f"User '{args.name}' added with ID {user_id}")
         console.print(f"[green]User '{args.name}' added with ID {user_id}.[/green]")
 
     elif args.command == "list-users":
@@ -123,18 +136,22 @@ def save_all(users, projects, tasks):
         console.print(table)
 
     elif args.command == "add-project":
+        logger.info(f"Attempting to add project: {args.title} for user {args.user}")
         user = find_user_by_name(args.user)
         if not user:
+            logger.error(f"User not found: {args.user}")
             console.print(f"[red]User '{args.user}' not found. Please check the user name or add the user first using 'add-user'.[/red]")
             sys.exit(1)
         # Check for duplicate project title
         if any(p["name"] == args.title for p in projects.values()):
+            logger.error(f"Duplicate project title: {args.title}")
             console.print(f"[red]A project with the title '{args.title}' already exists. Please choose a different title.[/red]")
             sys.exit(1)
         project_id = get_next_id(projects)
         projects[project_id] = {"project_id": project_id, "name": args.title, "description": args.description, "owner_id": user["user_id"], "tasks": [], "contributors": [user["user_id"]]}
         user["projects"].append(project_id)
         save_all(users, projects, tasks)
+        logger.info(f"Project '{args.title}' added for user '{args.user}'")
         console.print(f"[green]Project '{args.title}' added for user '{args.user}'.[/green]")
 
     elif args.command == "list-projects":
@@ -153,16 +170,20 @@ def save_all(users, projects, tasks):
         console.print(table)
 
     elif args.command == "add-task":
+        logger.info(f"Attempting to add task: {args.title} to project {args.project} for user {args.user}")
         project = find_project_by_title(args.project)
         if not project:
+            logger.error(f"Project not found: {args.project}")
             console.print(f"[red]Project '{args.project}' not found. Please check the project title or add the project first using 'add-project'.[/red]")
             sys.exit(1)
         user = find_user_by_name(args.user)
         if not user:
+            logger.error(f"User not found: {args.user}")
             console.print(f"[red]User '{args.user}' not found. Please check the user name or add the user first using 'add-user'.[/red]")
             sys.exit(1)
         # Check for duplicate task title in the same project
         if any(tasks[tid]["title"] == args.title for tid in project["tasks"] if tid in tasks):
+            logger.error(f"Duplicate task title: {args.title} in project {args.project}")
             console.print(f"[red]A task with the title '{args.title}' already exists in project '{args.project}'. Please choose a different title.[/red]")
             sys.exit(1)
         due_date = parse_due_date(args.due) if args.due else None
@@ -172,6 +193,7 @@ def save_all(users, projects, tasks):
         if user["user_id"] not in project["contributors"]:
             project["contributors"].append(user["user_id"])
         save_all(users, projects, tasks)
+        logger.info(f"Task '{args.title}' added to project '{args.project}' and assigned to '{args.user}'")
         console.print(f"[green]Task '{args.title}' added to project '{args.project}' and assigned to '{args.user}'.[/green]")
 
     elif args.command == "list-tasks":
@@ -193,16 +215,20 @@ def save_all(users, projects, tasks):
         console.print(table)
 
     elif args.command == "complete-task":
+        logger.info(f"Attempting to complete task: {args.task} in project {args.project}")
         project = find_project_by_title(args.project)
         if not project:
+            logger.error(f"Project not found: {args.project}")
             console.print(f"[red]Project '{args.project}' not found. Please check the project title or add the project first using 'add-project'.[/red]")
             sys.exit(1)
         task = find_task_by_title_and_project(args.task, project)
         if not task:
+            logger.error(f"Task not found: {args.task} in project {args.project}")
             console.print(f"[red]Task '{args.task}' not found in project '{args.project}'. Please check the task title or add the task first using 'add-task'.[/red]")
             sys.exit(1)
         task["status"] = "complete"
         save_all(users, projects, tasks)
+        logger.info(f"Task '{args.task}' marked as complete in project '{args.project}'")
         console.print(f"[green]Task '{args.task}' marked as complete in project '{args.project}'.[/green]")
 
     else:
