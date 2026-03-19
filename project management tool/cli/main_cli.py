@@ -1,21 +1,45 @@
-# Main CLI logic
-from rich.console import Console
-from rich.table import Table
-from models.entities import User, Project, Task
-from storage.storage import Storage
-from utils.helpers import validate_email, parse_due_date
-import logging
 
+"""
+Main CLI logic for the Project Management Tool.
 
+This script provides a command-line interface (CLI) for managing users, projects, and tasks.
+It supports adding, listing, and updating users, projects, and tasks, and persists data in JSON files.
+"""
 
 import os
 import sys
 import argparse
+import logging
 from typing import Dict, List
 from datetime import datetime
+from rich.console import Console
+from rich.table import Table
 from rich.prompt import Prompt
 
+# Ensure the project root is in sys.path for imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, os.pardir))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+from models.entities import User, Project, Task
+from storage.storage import Storage
+from utils.helpers import validate_email, parse_due_date
+
+def get_next_id(data_dict):
+    """
+    Get the next available integer ID as a string for a given dictionary.
+    Args:
+        data_dict (dict): Dictionary with integer string keys
+    Returns:
+        str: Next available ID
+    """
+    return str(max([int(k) for k in data_dict.keys()] + [0]) + 1)
+
 # Setup basic logging
+"""
+Setup basic logging for the CLI.
+"""
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s %(levelname)s %(name)s %(message)s',
@@ -24,6 +48,9 @@ logging.basicConfig(
 logger = logging.getLogger("cli")
 
 # Data file paths
+"""
+Data file paths for persistent storage.
+"""
 USER_FILE = os.path.join(os.path.dirname(__file__), '../storage/users.json')
 PROJECT_FILE = os.path.join(os.path.dirname(__file__), '../storage/projects.json')
 TASK_FILE = os.path.join(os.path.dirname(__file__), '../storage/tasks.json')
@@ -33,82 +60,126 @@ project_storage = Storage(PROJECT_FILE)
 task_storage = Storage(TASK_FILE)
 
 def load_all():
+    """
+    Load all users, projects, and tasks from storage.
+    Returns:
+        tuple: (users, projects, tasks) dictionaries
+    """
     users = user_storage.load()
     projects = project_storage.load()
     tasks = task_storage.load()
     return users, projects, tasks
 
 def save_all(users, projects, tasks):
+    """
+    Save all users, projects, and tasks to storage.
+    Args:
+        users (dict): Users data
+        projects (dict): Projects data
+        tasks (dict): Tasks data
+    """
     user_storage.save(users)
     project_storage.save(projects)
     task_storage.save(tasks)
 
 
 
-    console = Console()
-    parser = argparse.ArgumentParser(description="Project Management CLI Tool")
-    subparsers = parser.add_subparsers(dest="command")
 
-    # Add user
-    add_user_parser = subparsers.add_parser("add-user", help="Add a new user")
-    add_user_parser.add_argument("--name", required=True, help="User name")
-    add_user_parser.add_argument("--email", required=True, help="User email")
+console = Console()
+parser = argparse.ArgumentParser(description="Project Management CLI Tool")
+subparsers = parser.add_subparsers(dest="command")
 
-    # List users
-    list_user_parser = subparsers.add_parser("list-users", help="List all users")
+# Add user
+# Command: Add a new user
+add_user_parser = subparsers.add_parser("add-user", help="Add a new user")
+add_user_parser.add_argument("--name", required=True, help="User name")
+add_user_parser.add_argument("--email", required=True, help="User email")
 
-    # Add project
-    add_project_parser = subparsers.add_parser("add-project", help="Add a new project")
-    add_project_parser.add_argument("--user", required=True, help="User name (owner)")
-    add_project_parser.add_argument("--title", required=True, help="Project title")
-    add_project_parser.add_argument("--description", default="", help="Project description")
+# List users
+# Command: List all users
+list_user_parser = subparsers.add_parser("list-users", help="List all users")
 
-    # List projects
-    list_project_parser = subparsers.add_parser("list-projects", help="List projects for a user")
-    list_project_parser.add_argument("--user", required=True, help="User name")
+# Add project
+# Command: Add a new project
+add_project_parser = subparsers.add_parser("add-project", help="Add a new project")
+add_project_parser.add_argument("--user", required=True, help="User name (owner)")
+add_project_parser.add_argument("--title", required=True, help="Project title")
+add_project_parser.add_argument("--description", default="", help="Project description")
 
-    # Add task
-    add_task_parser = subparsers.add_parser("add-task", help="Add a new task to a project")
-    add_task_parser.add_argument("--project", required=True, help="Project title")
-    add_task_parser.add_argument("--title", required=True, help="Task title")
-    add_task_parser.add_argument("--due", default="", help="Due date (YYYY-MM-DD)")
-    add_task_parser.add_argument("--user", required=True, help="User name to assign task to")
+# List projects
+# Command: List all projects for a user
+list_project_parser = subparsers.add_parser("list-projects", help="List projects for a user")
+list_project_parser.add_argument("--user", required=True, help="User name")
 
-    # List tasks
-    list_task_parser = subparsers.add_parser("list-tasks", help="List tasks for a project")
-    list_task_parser.add_argument("--project", required=True, help="Project title")
+# Add task
+# Command: Add a new task to a project
+add_task_parser = subparsers.add_parser("add-task", help="Add a new task to a project")
+add_task_parser.add_argument("--project", required=True, help="Project title")
+add_task_parser.add_argument("--title", required=True, help="Task title")
+add_task_parser.add_argument("--due", default="", help="Due date (YYYY-MM-DD)")
+add_task_parser.add_argument("--user", required=True, help="User name to assign task to")
 
-    # Complete task
-    complete_task_parser = subparsers.add_parser("complete-task", help="Mark a task as complete")
-    complete_task_parser.add_argument("--task", required=True, help="Task title")
-    complete_task_parser.add_argument("--project", required=True, help="Project title")
+# List tasks
+# Command: List all tasks for a project
+list_task_parser = subparsers.add_parser("list-tasks", help="List tasks for a project")
+list_task_parser.add_argument("--project", required=True, help="Project title")
 
-    args = parser.parse_args()
-    users, projects, tasks = load_all()
+# Complete task
+# Command: Mark a task as complete
+complete_task_parser = subparsers.add_parser("complete-task", help="Mark a task as complete")
+complete_task_parser.add_argument("--task", required=True, help="Task title")
+complete_task_parser.add_argument("--project", required=True, help="Project title")
 
-    def get_next_id(data_dict):
-        return str(max([int(k) for k in data_dict.keys()] + [0]) + 1)
+args = parser.parse_args()
+users, projects, tasks = load_all()
 
-    # Helper functions
-    def find_user_by_name(name):
-        for u in users.values():
-            if u["name"] == name:
-                return u
-        return None
 
-    def find_project_by_title(title):
-        for p in projects.values():
-            if p["name"] == title:
-                return p
-        return None
+# Helper function to find a user by name
+def find_user_by_name(name):
+    """
+    Find a user dictionary by user name.
+    Args:
+        name (str): User name
+    Returns:
+        dict or None: User dict if found, else None
+    """
+    for u in users.values():
+        if u["name"] == name:
+            return u
+    return None
 
-    def find_task_by_title_and_project(task_title, project):
-        for tid in project["tasks"]:
-            t = tasks.get(tid)
-            if t and t["title"] == task_title:
-                return t
-        return None
+# Helper function to find a project by title
+def find_project_by_title(title):
+    """
+    Find a project dictionary by project title.
+    Args:
+        title (str): Project title
+    Returns:
+        dict or None: Project dict if found, else None
+    """
+    for p in projects.values():
+        if p["name"] == title:
+            return p
+    return None
 
+# Helper function to find a task by title and project
+def find_task_by_title_and_project(task_title, project):
+    """
+    Find a task dictionary by title within a given project.
+    Args:
+        task_title (str): Task title
+        project (dict): Project dict
+    Returns:
+        dict or None: Task dict if found, else None
+    """
+    for tid in project["tasks"]:
+        t = tasks.get(tid)
+        if t and t["title"] == task_title:
+            return t
+    return None
+
+# === Main command dispatch block ===
+if __name__ == "__main__":
     if args.command == "add-user":
         logger.info(f"Attempting to add user: {args.name} <{args.email}>")
         if not validate_email(args.email):
