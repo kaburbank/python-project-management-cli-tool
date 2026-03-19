@@ -15,30 +15,64 @@ TASK_FILE = os.path.join(DATA_DIR, 'tasks.json')
 console = Console()
 
 def ensure_data_dir():
+    """
+    Ensure the data directory exists. Creates it if missing.
+    """
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
 
 def load_all():
+    """
+    Load all users, projects, and tasks from their respective JSON files.
+    Returns:
+        tuple: (users, projects, tasks)
+    """
     users = load_json(USER_FILE)
     projects = load_json(PROJECT_FILE)
     tasks = load_json(TASK_FILE)
     return users, projects, tasks
 
 def save_all(users, projects, tasks):
+    """
+    Save all users, projects, and tasks to their respective JSON files.
+    Args:
+        users (dict): User data.
+        projects (dict): Project data.
+        tasks (dict): Task data.
+    """
     save_json(USER_FILE, users)
     save_json(PROJECT_FILE, projects)
     save_json(TASK_FILE, tasks)
 
 def get_next_id(data_dict):
+    """
+    Get the next available integer ID for a dictionary of items.
+    Args:
+        data_dict (dict): Dictionary with integer keys as strings.
+    Returns:
+        str: Next available ID as a string.
+    """
     return str(max([int(k) for k in data_dict.keys()] + [0]) + 1)
 
 class Person:
     def __init__(self, name: str):
+        """
+        Initialize a Person with a name.
+        Args:
+            name (str): The person's name.
+        """
         self.name = name
 
 class User(Person):
     id_counter = 1
     def __init__(self, name: str, email: str, user_id=None):
+        """
+        Initialize a User with name, email, and optional user_id.
+        Args:
+            name (str): User's name.
+            email (str): User's email.
+            user_id (int, optional): User ID. If None, auto-incremented.
+        """
         super().__init__(name)
         self.email = email
         self.projects = []
@@ -50,18 +84,44 @@ class User(Person):
 
     @property
     def email(self):
+        """
+        Get the user's email address.
+        Returns:
+            str: The email address.
+        """
         return self._email
     @email.setter
     def email(self, value):
+        """
+        Set the user's email address, validating format.
+        Args:
+            value (str): The email address to set.
+        Raises:
+            ValueError: If email is invalid.
+        """
         if '@' not in value:
             raise ValueError('Invalid email')
         self._email = value
     def __str__(self):
+        """
+        String representation of the User.
+        Returns:
+            str: User info string.
+        """
         return f"User({self.user_id}): {self.name} <{self.email}>"
 
 class Project:
     id_counter = 1
     def __init__(self, title: str, description: str, due_date: str, owner_id: int, project_id=None):
+        """
+        Initialize a Project with title, description, due date, owner, and optional project_id.
+        Args:
+            title (str): Project title.
+            description (str): Project description.
+            due_date (str): Due date string.
+            owner_id (int): Owner user ID.
+            project_id (int, optional): Project ID. If None, auto-incremented.
+        """
         self.title = title
         self.description = description
         self.due_date = due_date
@@ -73,11 +133,24 @@ class Project:
         else:
             self.project_id = int(project_id)
     def __str__(self):
+        """
+        String representation of the Project.
+        Returns:
+            str: Project info string.
+        """
         return f"Project({self.project_id}): {self.title} (Due: {self.due_date})"
 
 class Task:
     id_counter = 1
     def __init__(self, title: str, status: str, assigned_to: int, task_id=None):
+        """
+        Initialize a Task with title, status, assigned user, and optional task_id.
+        Args:
+            title (str): Task title.
+            status (str): Task status.
+            assigned_to (int): User ID assigned to task.
+            task_id (int, optional): Task ID. If None, auto-incremented.
+        """
         self.title = title
         self.status = status
         self.assigned_to = assigned_to
@@ -87,6 +160,11 @@ class Task:
         else:
             self.task_id = int(task_id)
     def __str__(self):
+        """
+        String representation of the Task.
+        Returns:
+            str: Task info string.
+        """
         return f"Task({self.task_id}): {self.title} [{self.status}]"
 
 def main():
