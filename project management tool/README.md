@@ -39,6 +39,10 @@ python main.py <command> [options]
 	```
 	python main.py list-projects
 	```
+- List all tasks for a project:
+	```
+	python main.py list-tasks --project "CLI Tool"
+	```
 - Mark a task as complete:
 	```
 	python main.py complete-task --project "CLI Tool" --task "Implement add-task"

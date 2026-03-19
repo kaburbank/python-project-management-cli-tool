@@ -1,1 +1,32 @@
-{}
+{
+  "1": {
+    "task_id": 1,
+    "title": "Test Task",
+    "status": "complete",
+    "assigned_to": 3
+  },
+  "2": {
+    "task_id": 2,
+    "title": "Refactor Task",
+    "status": "complete",
+    "assigned_to": 4
+  },
+  "3": {
+    "task_id": 3,
+    "title": "Implement add-task",
+    "status": "complete",
+    "assigned_to": 1
+  },
+  "4": {
+    "task_id": 4,
+    "title": "TestTask",
+    "status": "complete",
+    "assigned_to": 6
+  },
+  "5": {
+    "task_id": 5,
+    "title": "UniqueTask",
+    "status": "complete",
+    "assigned_to": 8
+  }
+}
