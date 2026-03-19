@@ -3,58 +3,6 @@
     "user_id": 1,
     "name": "Alex",
     "email": "alex@example.com",
-    "projects": [
-      "1"
-    ]
-  },
-  "2": {
-    "user_id": 2,
-    "name": "Alex",
-    "email": "alex@example.com",
     "projects": []
-  },
-  "3": {
-    "user_id": 3,
-    "name": "Test User",
-    "email": "test@example.com",
-    "projects": [
-      "2"
-    ]
-  },
-  "4": {
-    "user_id": 4,
-    "name": "Refactor User",
-    "email": "refactor@example.com",
-    "projects": [
-      "3"
-    ]
-  },
-  "5": {
-    "user_id": 5,
-    "name": "Alex",
-    "email": "alex@example.com",
-    "projects": []
-  },
-  "6": {
-    "user_id": 6,
-    "name": "TestUser",
-    "email": "testuser@example.com",
-    "projects": [
-      "4"
-    ]
-  },
-  "7": {
-    "user_id": 7,
-    "name": "TestUser",
-    "email": "testuser@example.com",
-    "projects": []
-  },
-  "8": {
-    "user_id": 8,
-    "name": "UniqueUser",
-    "email": "uniqueuser@example.com",
-    "projects": [
-      "5"
-    ]
   }
 }
