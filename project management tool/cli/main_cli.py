@@ -23,7 +23,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from models.entities import User, Project, Task
-from storage.storage import Storage
+from utils.data_access import ensure_data_dir, load_all, save_all
 from utils.helpers import validate_email, parse_due_date
 
 def get_next_id(data_dict):
@@ -51,13 +51,21 @@ logger = logging.getLogger("cli")
 """
 Data file paths for persistent storage.
 """
-USER_FILE = os.path.join(os.path.dirname(__file__), '../storage/users.json')
-PROJECT_FILE = os.path.join(os.path.dirname(__file__), '../storage/projects.json')
-TASK_FILE = os.path.join(os.path.dirname(__file__), '../storage/tasks.json')
+DATA_DIR = os.path.join(os.path.dirname(__file__), '../data')
+USER_FILE = os.path.join(DATA_DIR, 'users.json')
+PROJECT_FILE = os.path.join(DATA_DIR, 'projects.json')
+TASK_FILE = os.path.join(DATA_DIR, 'tasks.json')
 
-user_storage = Storage(USER_FILE)
-project_storage = Storage(PROJECT_FILE)
-task_storage = Storage(TASK_FILE)
+
+def ensure_data_dir():
+    """
+    Ensure the data directory exists. Creates it if missing.
+    """
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+
+
+ensure_data_dir()
 
 def load_all():
     """

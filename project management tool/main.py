@@ -1,10 +1,11 @@
 
+
+
 import argparse
 import os
+from utils.data_access import ensure_data_dir, load_all, save_all
 from rich.console import Console
 from rich.table import Table
-from models.entities import User, Project, Task
-from utils.persistence import load_json, save_json
 from datetime import datetime
 
 DATA_DIR = os.path.join(os.path.dirname(__file__), 'data')
@@ -13,36 +14,6 @@ PROJECT_FILE = os.path.join(DATA_DIR, 'projects.json')
 TASK_FILE = os.path.join(DATA_DIR, 'tasks.json')
 
 console = Console()
-
-def ensure_data_dir():
-    """
-    Ensure the data directory exists. Creates it if missing.
-    """
-    if not os.path.exists(DATA_DIR):
-        os.makedirs(DATA_DIR)
-
-def load_all():
-    """
-    Load all users, projects, and tasks from their respective JSON files.
-    Returns:
-        tuple: (users, projects, tasks)
-    """
-    users = load_json(USER_FILE)
-    projects = load_json(PROJECT_FILE)
-    tasks = load_json(TASK_FILE)
-    return users, projects, tasks
-
-def save_all(users, projects, tasks):
-    """
-    Save all users, projects, and tasks to their respective JSON files.
-    Args:
-        users (dict): User data.
-        projects (dict): Project data.
-        tasks (dict): Task data.
-    """
-    save_json(USER_FILE, users)
-    save_json(PROJECT_FILE, projects)
-    save_json(TASK_FILE, tasks)
 
 def get_next_id(data_dict):
     """
@@ -194,6 +165,10 @@ def main():
     add_task_parser.add_argument("--user", required=True, help="User name to assign task to")
     add_task_parser.add_argument("--status", default="pending", help="Task status")
 
+    # List tasks
+    list_task_parser = subparsers.add_parser("list-tasks", help="List tasks for a project")
+    list_task_parser.add_argument("--project", required=True, help="Project title")
+
     # Complete task
     complete_task_parser = subparsers.add_parser("complete-task", help="Mark a task as complete")
     complete_task_parser.add_argument("--project", required=True, help="Project title")
@@ -221,6 +196,10 @@ def main():
         return None
 
     if args.command == "add-user":
+        # Enforce unique user names
+        if any(u["name"] == args.name for u in users.values()):
+            console.print(f"[red]A user with the name '{args.name}' already exists. Please choose a different name.[/red]")
+            return
         user_id = get_next_id(users)
         try:
             user = User(args.name, args.email, user_id)
@@ -259,6 +238,7 @@ def main():
         save_all(users, projects, tasks)
         console.print(f"[green]{task} added to project '{args.project}'.[/green]")
 
+
     elif args.command == "list-projects":
         table = Table(title="Projects")
         table.add_column("ID")
@@ -269,6 +249,24 @@ def main():
         for p in projects.values():
             owner = users.get(str(p["owner_id"]), {}).get("name", str(p["owner_id"]))
             table.add_row(str(p["project_id"]), p["title"], p["description"], p["due_date"], owner)
+        console.print(table)
+
+    elif args.command == "list-tasks":
+        project = find_project_by_title(args.project)
+        if not project:
+            console.print(f"[red]Project '{args.project}' not found. Please check the project title or add the project first using 'add-project'.[/red]")
+            return
+        table = Table(title=f"Tasks for Project {args.project}")
+        table.add_column("ID")
+        table.add_column("Title")
+        table.add_column("Due Date")
+        table.add_column("Assigned To")
+        table.add_column("Status")
+        for tid in project["tasks"]:
+            t = tasks.get(str(tid))
+            if t:
+                assigned_user = users.get(str(t["assigned_to"]), {}).get("name", str(t["assigned_to"]))
+                table.add_row(str(t["task_id"]), t["title"], t.get("due_date", "") or "", assigned_user, t["status"])
         console.print(table)
 
     elif args.command == "complete-task":
